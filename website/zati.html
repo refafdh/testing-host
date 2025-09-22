@@ -1,0 +1,354 @@
+   <!--
+  File: koleksi-foto-cewek.html
+  Description: Elegant responsive photo gallery (navy & light-blue theme) for your "koleksi ft cwe".
+  How to use:
+    1. Save this file as koleksi-foto-cewek.html.
+    2. Create a folder named `photos` next to the HTML file and add your images as photo1.jpg, photo2.jpg, ...
+    3. Open the HTML file in a browser. Replace or add images in the gallery grid where indicated.
+
+  Notes:
+    - The layout is responsive, supports keyboard navigation in modal, and has a simple album filter.
+    - Replace the placeholder image paths with your actual image files.
+-->
+
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Koleksi Foto</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy: #0b2340; /* deep navy */
+      --navy-2: #0f3a61;
+      --light: #eaf7ff; /* very light blue */
+      --accent: #7ec8ff; /* light blue accent */
+      --muted: #9fb6cc;
+      --glass: rgba(255,255,255,0.06);
+      --radius: 14px;
+      --max-width: 1100px;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,var(--navy) 0%, #072033 60%);
+      color: #e6f6ff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:40px 20px;
+    }
+    .wrap{
+      width:100%;
+      max-width:var(--max-width);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04));
+      border-radius:20px;
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      padding:28px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.03);
+    }
+    header{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    .logo{
+      width:68px; height:68px; border-radius:12px; background:linear-gradient(135deg,var(--accent),var(--navy-2));
+      display:flex; align-items:center; justify-content:center; font-weight:700; font-size:22px; color:var(--navy);
+      box-shadow: 0 6px 18px rgba(14,40,70,0.6);
+    }
+    h1{margin:0; font-size:20px; letter-spacing:0.2px}
+    p.lead{margin:4px 0 0; color:var(--light); opacity:0.9; font-size:13px}
+
+    .controls{
+      display:flex; gap:10px; margin-top:14px; align-items:center; flex-wrap:wrap;
+    }
+    .search{
+      padding:8px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:var(--light);
+      min-width:200px;
+    }
+    .btn{
+      background:linear-gradient(180deg,var(--accent), #58b3ff);
+      color:var(--navy);
+      padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:600;
+      box-shadow: 0 6px 12px rgba(9,20,40,0.45);
+    }
+
+    .filter{
+      display:flex; gap:8px; align-items:center; margin-left:auto;
+    }
+    .chip{
+      background:transparent; border:1px solid rgba(255,255,255,0.06); padding:6px 10px; border-radius:999px; font-size:13px; cursor:pointer;
+    }
+    .chip.active{ background:var(--glass); border-color:rgba(126,200,255,0.14)}
+
+    .gallery{
+      display:grid; grid-template-columns: repeat(3,1fr); gap:14px; margin-top:18px;
+    }
+    @media (max-width:900px){ .gallery{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:520px){ .gallery{grid-template-columns:repeat(1,1fr)} }
+
+    .card{
+      position:relative; overflow:hidden; border-radius:12px; cursor:pointer; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+      transition:transform .26s ease, box-shadow .26s ease; border:1px solid rgba(255,255,255,0.03);
+    }
+    .card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(2,8,24,0.6) }
+    .card img{ display:block; width:100%; height:260px; object-fit:cover }
+    .meta{
+      position:absolute; left:12px; bottom:12px; right:12px; display:flex; justify-content:space-between; align-items:center;
+      backdrop-filter: blur(6px); padding:8px; border-radius:10px; background:linear-gradient(180deg, rgba(11,35,64,0.36), rgba(11,35,64,0.18));
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .meta .title{ font-weight:600; font-size:13px }
+    .meta .tag{ font-size:12px; color:var(--muted) }
+
+    /* Modal / Lightbox */
+    .modal{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,18,0.6); visibility:hidden; opacity:0; transition:opacity .18s ease, visibility .18s ease }
+    .modal.open{ visibility:visible; opacity:1 }
+    .modal-inner{ max-width:920px; width:94%; background:transparent; }
+    .modal-content{ position:relative; border-radius:14px; overflow:hidden; }
+    .modal img{ width:100%; height:auto; display:block; max-height:80vh; object-fit:contain; border-radius:8px }
+    .modal .close{ position:absolute; right:8px; top:8px; background:rgba(255,255,255,0.06); border-radius:8px; padding:8px; cursor:pointer }
+    .modal .caption{ margin-top:10px; color:var(--light); font-weight:600 }
+
+    footer{ margin-top:18px; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; align-items:center }
+    .credit{ opacity:0.9 }
+
+    /* Foto spesial di galeri */
+.gallery .special {
+  grid-column: span 3; /* posisinya full row di layar besar */
+  display: flex;
+  justify-content: center;
+}
+
+.gallery .special img {
+  width: 360px;
+  height: 360px; /* persegi */
+  object-fit: cover;
+  border-radius: 24px;
+  border: 3px solid var(--accent);
+  box-shadow: 0 0 25px rgba(126,200,255,0.4),
+              0 0 60px rgba(126,200,255,0.25); /* efek glow elegan */
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+
+.gallery .special:hover img {
+  transform: scale(1.04);
+  box-shadow: 0 0 35px rgba(126,200,255,0.6),
+              0 0 70px rgba(126,200,255,0.35);
+}
+
+/* Responsif */
+@media (max-width:900px){
+  .gallery .special{ grid-column: span 2; }
+  .gallery .special img{ width:300px; height:300px; }
+}
+@media (max-width:520px){
+  .gallery .special{ grid-column: span 1; }
+  .gallery .special img{ width:100%; height:auto; aspect-ratio:1/1; }
+}
+
+  </style>
+</head>
+<body>
+  <div class="wrap" role="main">
+    <header>
+      <div class="logo">KF</div>
+      <div>
+        <h1>WHIT YOU</h1>
+        <p class="lead">NURHIZATI BADRIZAH &amp; REFA FADILLA HARDIANDA</p>
+        <div class="controls">
+          <input class="search" id="search" placeholder="Cari judul atau tag..." aria-label="Cari koleksi">
+          <button class="btn" id="shuffle">Acak</button>
+          <div class="filter" role="tablist" aria-label="Filter album">
+            <button class="chip active" data-filter="all">Semua</button>
+            <button class="chip" data-filter="travel">Travel</button>
+            <button class="chip" data-filter="casual">Casual</button>
+            <button class="chip" data-filter="event">Event</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="gallery" id="gallery">
+      <!-- Replace the src paths with your actual image paths (e.g. photos/anna_birthday.jpg) -->
+      <!-- Foto spesial Happy Wedding -->
+<figure class="card special" data-title="Happy Wedding" data-tag="event">
+  <img src="photos/happy-wedding.jpg" alt="Happy Wedding">
+  <figcaption class="meta">
+    <div class="title">Aku selalu membayangkan sebuah hari dimana aku berdiri di sampingmu, mengenakan janji suci di hadapan Tuhan dan keluarga. Hari di mana impian sederhana ini menjadi nyata: hidup bersama, saling menguatkan, dan menua berdua. Bagiku, menikah denganmu bukan sekadar impian, tapi doa yang setiap hari kuucapkan dengan penuh harap</div>
+    <div class="tag">event</div>
+  </figcaption>
+</figure>
+
+
+      <figure class="card" data-title="Ultah Refa" data-tag="travel">
+        <img src="photos/photo1.jpg" alt="Ultah Refa">
+        <figcaption class="meta"><div class="title">Ultah Refa</div><div class="tag">travel</div></figcaption>
+      </figure>
+
+      <figure class="card" data-title="Anniversary kita berduas" data-tag="casual">
+        <img src="photos/photo2.jpg" alt="Anniversary kita berdua">
+        <figcaption class="meta"><div class="title">Anniversary kita berdua</div><div class="tag">casual</div></figcaption>
+      </figure>
+
+      <figure class="card" data-title="Ultah Zati" data-tag="event">
+        <img src="ultah ke 17.jpeg" alt="Ultah Zati">
+        <figcaption class="meta"><div class="title">Ultah Zati</div><div class="tag">event</div></figcaption>
+      </figure>
+
+      <figure class="card" data-title="Jalan-jalan Kota" data-tag="travel">
+        <img src="photos/photo4.jpg" alt="Jalan-jalan Kota">
+        <figcaption class="meta"><div class="title">Jalan-jalan Kota</div><div class="tag">travel</div></figcaption>
+      </figure>
+
+      <figure class="card" data-title="OOTD Casual" data-tag="casual">
+        <img src="photos/photo5.jpg" alt="OOTD Casual">
+        <figcaption class="meta"><div class="title">OOTD Casual</div><div class="tag">casual</div></figcaption>
+      </figure>
+
+      <figure class="card" data-title="Malam Bersama" data-tag="event">
+        <img src="photos/photo6.jpg" alt="Malam Bersama">
+        <figcaption class="meta"><div class="title">Malam Bersama</div><div class="tag">event</div></figcaption>
+      </figure>
+
+    </section>
+
+    <footer>
+      <div class="credit">Made with ♥ — tema Navy & Light Blue</div>
+      <div class="hint">Tekan gambar untuk melihat lebih besar • ← → untuk navigasi</div>
+    </footer>
+  </div>
+
+  <!-- Modal / Lightbox -->
+  <div class="modal" id="lightbox" aria-hidden="true" role="dialog" aria-label="Preview foto">
+    <div class="modal-inner">
+      <div class="modal-content">
+        <button class="close" id="closeBtn" aria-label="Tutup">✕</button>
+        <img id="lightbox-img" src="" alt="Preview">
+        <div class="caption" id="lightbox-caption"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple gallery JS: filtering, search, lightbox, keyboard navigation
+    const chips = document.querySelectorAll('.chip');
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const gallery = document.getElementById('gallery');
+    const search = document.getElementById('search');
+    const shuffleBtn = document.getElementById('shuffle');
+
+    chips.forEach(c => c.addEventListener('click', ()=>{
+      chips.forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+      const filter = c.dataset.filter;
+      applyFilter(filter, search.value.trim().toLowerCase());
+    }))
+
+    search.addEventListener('input', ()=>{
+      const active = document.querySelector('.chip.active').dataset.filter;
+      applyFilter(active, search.value.trim().toLowerCase());
+    })
+
+    shuffleBtn.addEventListener('click', ()=>{
+      // Fisher–Yates shuffle
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+      // re-append
+      cards.forEach(c => gallery.appendChild(c));
+    })
+
+    function applyFilter(filter, query){
+      cards.forEach(card => {
+        const tag = card.dataset.tag || '';
+        const title = (card.dataset.title || '').toLowerCase();
+        const matchesFilter = (filter === 'all') || (tag === filter);
+        const matchesQuery = (!query) || title.includes(query) || tag.includes(query);
+        card.style.display = (matchesFilter && matchesQuery) ? '' : 'none';
+      })
+    }
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    const closeBtn = document.getElementById('closeBtn');
+
+    let currentIndex = -1;
+    function openLightbox(idx){
+      const card = visibleCards()[idx];
+      if(!card) return;
+      const img = card.querySelector('img');
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightboxCaption.textContent = card.dataset.title || '';
+      lightbox.classList.add('open');
+      lightbox.setAttribute('aria-hidden','false');
+      currentIndex = idx;
+    }
+
+    function closeLightbox(){
+      lightbox.classList.remove('open');
+      lightbox.setAttribute('aria-hidden','true');
+      currentIndex = -1;
+    }
+
+    function visibleCards(){
+      return Array.from(document.querySelectorAll('.card')).filter(c => c.style.display !== 'none');
+    }
+
+    // attach click handlers
+    cards.forEach((card, i) => {
+      card.addEventListener('click', ()=>{
+        const idx = visibleCards().indexOf(card);
+        openLightbox(idx);
+      })
+    })
+
+    closeBtn.addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', (e)=>{ if(e.target === lightbox) closeLightbox() });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e)=>{
+      if(lightbox.classList.contains('open')){
+        if(e.key === 'Escape') closeLightbox();
+        if(e.key === 'ArrowRight') next();
+        if(e.key === 'ArrowLeft') prev();
+      }
+    })
+
+    function next(){
+      const vc = visibleCards();
+      if(vc.length === 0) return;
+      currentIndex = (currentIndex + 1) % vc.length;
+      openLightbox(currentIndex);
+    }
+    function prev(){
+      const vc = visibleCards();
+      if(vc.length === 0) return;
+      currentIndex = (currentIndex - 1 + vc.length) % vc.length;
+      openLightbox(currentIndex);
+    }
+
+    // Accessibility: focus trap (simple)
+    lightbox.addEventListener('keydown', (e)=>{
+      if(e.key === 'Tab') e.preventDefault();
+    })
+
+    // Initialize (optional: use images that exist)
+    applyFilter('all','');
+  </script>
+</body>
+</html>
